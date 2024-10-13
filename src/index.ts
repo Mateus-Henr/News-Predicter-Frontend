@@ -17,7 +17,8 @@ const client = new Client({
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
         ],
-        executablePath: "/usr/bin/google-chrome-stable"
+        executablePath: "/usr/bin/google-chrome-stable",
+        timeout: 80000
     }
 });
 
