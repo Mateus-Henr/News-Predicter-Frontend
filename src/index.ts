@@ -133,5 +133,5 @@ client.initialize().then(r => console.log("Initialized"));
 
 app.listen(3000, () =>
 {
-    console.log("Server running on port 3005");
+    console.log("Server running on port 3000");
 });
