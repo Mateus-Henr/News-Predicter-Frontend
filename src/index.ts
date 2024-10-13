@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 const client = new Client({
     puppeteer: {
         headless: true,
+        browser: "firefox",
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -17,7 +18,7 @@ const client = new Client({
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
         ],
-        executablePath: "/usr/bin/google-chrome-stable",
+        executablePath: "/usr/bin/firefox",
         timeout: 100000
     }
 });
