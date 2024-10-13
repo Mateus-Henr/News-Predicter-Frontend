@@ -1,15 +1,20 @@
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import {Chat, Client, Message} from "whatsapp-web.js";
+import { Chat, Client, Message } from "whatsapp-web.js";
 import axios from "axios";
 import qrcode from "qrcode-terminal";
+import puppeteer from "puppeteer";
 
 const app = express();
 app.use(bodyParser.json());
 
-const client = new Client({
-    puppeteer: {
-        headless: true,
+declare global {
+    var GROUP_ID: string | undefined;
+}
+
+(async () => {
+    const browser = await puppeteer.launch({
+        headless: true,  // Adjust to your needs
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -17,122 +22,99 @@ const client = new Client({
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
         ],
-        executablePath: "/usr/bin/google-chrome-stable",
-        timeout: 80000
-    }
-});
+        executablePath: "/usr/bin/google-chrome-stable"
+    });
 
-declare global
-{
-    var GROUP_ID: string | undefined;
-}
+    const browserWSEndpoint = browser.wsEndpoint();  // Get WebSocket endpoint
 
-client.on("qr", (qr: string) =>
-{
-    qrcode.generate(qr, {small: true});
-});
-
-client.on("ready", async () =>
-{
-    console.log("WhatsApp client is ready!");
-
-    try
-    {
-        const chats = await client.getChats();
-        const group = chats.find((chat: Chat) => chat.isGroup && chat.name === "Stock News Analyses");
-
-        if (group)
-        {
-            console.log(`Group ID: ${group.id._serialized}`);
-            global.GROUP_ID = group.id._serialized;
+    const client = new Client({
+        puppeteer: {
+            browserWSEndpoint: browserWSEndpoint
         }
-        else
-        {
-            console.error("Group not found");
+    });
+
+    client.on("qr", (qr: string) => {
+        qrcode.generate(qr, { small: true });
+    });
+
+    client.on("ready", async () => {
+        console.log("WhatsApp client is ready!");
+
+        try {
+            const chats = await client.getChats();
+            const group = chats.find((chat: Chat) => chat.isGroup && chat.name === "Stock News Analyses");
+
+            if (group) {
+                console.log(`Group ID: ${group.id._serialized}`);
+                global.GROUP_ID = group.id._serialized;
+            } else {
+                console.error("Group not found");
+            }
+        } catch (error) {
+            console.error("Error while getting chats:", error);
         }
-    }
-    catch (error)
-    {
-        console.error("Error while getting chats:", error);
-    }
-});
+    });
 
-client.on("message_create", async (message: Message) =>
-{
-    try
-    {
-        const chat = await message.getChat();
-        if (chat.isGroup && chat.name !== "Stock News Analyses")
-        {
-            return;
-        }
-
-        const content = message.body;
-
-        if (content.startsWith("!news"))
-        {
-            const messageString = content.replace("!news ", "").split(" ");
-            const ticker = messageString[0];
-            const url = messageString[1];
-
-            if (!ticker || !url || !url.startsWith("http"))
-            {
-                await message.reply("Invalid data.");
+    client.on("message_create", async (message: Message) => {
+        try {
+            const chat = await message.getChat();
+            if (chat.isGroup && chat.name !== "Stock News Analyses") {
                 return;
             }
 
-            try
-            {
-                const response = await axios.post(`${process.env.BASE_URL}/news`,
-                    {
-                        ticker: ticker,
-                        url: url
-                    });
-                await message.reply(response.data["message"]);
+            const content = message.body;
+
+            if (content.startsWith("!news")) {
+                const messageString = content.replace("!news ", "").split(" ");
+                const ticker = messageString[0];
+                const url = messageString[1];
+
+                if (!ticker || !url || !url.startsWith("http")) {
+                    await message.reply("Invalid data.");
+                    return;
+                }
+
+                try {
+                    const response = await axios.post(`${process.env.BASE_URL}/news`,
+                        {
+                            ticker: ticker,
+                            url: url
+                        });
+                    await message.reply(response.data["message"]);
+                } catch (error) {
+                    console.error("Error sending news request:", error);
+                    await message.reply("Processing error.");
+                    return;
+                }
             }
-            catch (error)
-            {
-                console.error("Error sending news request:", error);
-                await message.reply("Processing error.");
-                return;
-            }
+        } catch (error) {
+            console.error("Error processing message:", error);
         }
-    }
-    catch (error)
-    {
-        console.error("Error processing message:", error);
-    }
-});
+    });
 
-app.post("/send-message", async (req: Request, res: Response): Promise<any> =>
-{
-    const {message}: { message: string } = req.body;
+    app.post("/send-message", async (req: Request, res: Response): Promise<any> => {
+        const { message }: { message: string } = req.body;
 
-    if (!message)
-    {
-        return res.status(400).json({error: "Message is required"});
-    }
+        if (!message) {
+            return res.status(400).json({ error: "Message is required" });
+        }
 
-    if (!global.GROUP_ID)
-    {
-        return res.status(500).json({error: "Group ID not found"});
-    }
+        if (!global.GROUP_ID) {
+            return res.status(500).json({ error: "Group ID not found" });
+        }
 
-    try
-    {
-        await client.sendMessage(global.GROUP_ID, message);
-        res.status(200).json({status: "Message sent to group"});
-    }
-    catch (error)
-    {
-        console.error("Failed to send message:", error);
-        res.status(500).json({error: "Failed to send message"});
-    }
-});
+        try {
+            await client.sendMessage(global.GROUP_ID, message);
+            res.status(200).json({ status: "Message sent to group" });
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            res.status(500).json({ error: "Failed to send message" });
+        }
+    });
 
-client.initialize().then(r => console.log("Initialized"));
+    client.initialize().then(() => console.log("Initialized"));
 
-app.listen(3000, () =>
-{
-    console.log("Server running on port 3000");
-});
+    app.listen(3000, () => {
+        console.log("Server running on port 3000");
+    });
+})();
