@@ -7,7 +7,20 @@ import qrcode from "qrcode-terminal";
 const app = express();
 app.use(bodyParser.json());
 
-const client = new Client({});
+// Configure Puppeteer options for WhatsApp Web.js
+const client = new Client({
+    puppeteer: {
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--disable-gpu"
+        ],
+        executablePath: "/usr/bin/google-chrome-stable"
+    }
+});
 
 declare global
 {
