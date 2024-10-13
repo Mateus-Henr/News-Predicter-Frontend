@@ -16,7 +16,8 @@ const client = new Client({
             "--disable-dev-shm-usage",
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
-        ]
+        ],
+        executablePath: "/usr/bin/google-chrome-stable"
     }
 });
 
