@@ -26,9 +26,14 @@ COPY package*.json ./
 # Install app dependencies including Puppeteer
 RUN npm install
 
-# Replace whatsapp-web.js package.json after npm install
+# Copy your custom package.json for whatsapp-web.js
 COPY fix/package.json ./fix/package.json
+
+# Replace whatsapp-web.js package.json after npm install
 RUN cp ./fix/package.json ./node_modules/whatsapp-web.js/package.json
+
+# Install the new dependency
+RUN npm install --prefix ./node_modules/whatsapp-web.js
 
 # Bundle app source code
 COPY . .
