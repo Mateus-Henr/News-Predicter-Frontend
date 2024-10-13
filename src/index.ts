@@ -7,7 +7,6 @@ import qrcode from "qrcode-terminal";
 const app = express();
 app.use(bodyParser.json());
 
-// Configure Puppeteer options for WhatsApp Web.js
 const client = new Client({
     puppeteer: {
         headless: true,
@@ -132,7 +131,7 @@ app.post("/send-message", async (req: Request, res: Response): Promise<any> =>
 
 client.initialize().then(r => console.log("Initialized"));
 
-app.listen(3005, () =>
+app.listen(3000, () =>
 {
     console.log("Server running on port 3005");
 });
