@@ -14,3 +14,4 @@ yarn-error.log*
 .wwebjs_cache
 .github
 docs
+dist

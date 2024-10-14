@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "outDir": "./dist",
     "module": "commonjs",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "es6",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist"
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,  // Allow JavaScript files
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "src/**/*.js", "src/whatsapp-web.js/**/*.js"],  // Include .js files
+  "exclude": ["node_modules"]
 }
