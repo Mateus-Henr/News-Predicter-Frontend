@@ -5,7 +5,7 @@ FROM node:18-slim
 WORKDIR /app
 
 # We don't need the standalone Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Install Google Chrome Stable and fonts
 RUN apt-get update && apt-get install gnupg wget -y && \
@@ -28,9 +28,9 @@ RUN npm install
 # Copy the entire project into the working directory
 COPY . .
 
-# Navigate to the whatsapp-web.js directory and install dependencies
-WORKDIR /app/whatsapp-web.js
-COPY whatsapp-web.js/package*.json ./
+# Navigate to the correct directory for whatsapp-web.js and install dependencies
+WORKDIR /app/src/whatsapp-web.js
+COPY src/whatsapp-web.js/package*.json ./
 RUN npm install
 
 # Navigate back to the main project directory
