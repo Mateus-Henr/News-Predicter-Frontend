@@ -30,7 +30,7 @@ COPY . .
 
 # Navigate to the correct directory for whatsapp-web.js and install dependencies
 WORKDIR /app/src/whatsapp-web.js
-COPY src/whatsapp-web.js/package*.json ./
+COPY src/whatsapp-web.js ./
 RUN npm install
 
 # Navigate back to the main project directory
