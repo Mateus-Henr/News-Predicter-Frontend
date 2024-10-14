@@ -10,8 +10,8 @@
       <excludeFolder url="file://$MODULE_DIR$/dist/whatsapp-web.js/.github" />
       <excludeFolder url="file://$MODULE_DIR$/dist/whatsapp-web.js/docs" />
       <excludeFolder url="file://$MODULE_DIR$/src/.wwebjs_cache" />
-      <excludeFolder url="file://$MODULE_DIR$/src/whatsapp-web.js/.github" />
-      <excludeFolder url="file://$MODULE_DIR$/src/whatsapp-web.js/docs" />
+      <excludeFolder url="file://$MODULE_DIR$/whatsapp-web.js/.github" />
+      <excludeFolder url="file://$MODULE_DIR$/whatsapp-web.js/docs" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

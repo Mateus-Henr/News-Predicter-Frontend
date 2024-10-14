@@ -1,8 +1,8 @@
-# Use the official Node.js image as the base image
+# Use an official Node.js runtime as a parent image
 FROM node:18-slim
 
-# Set the working directory
-WORKDIR /usr/src/app
+# Set the working directory in the container
+WORKDIR /app
 
 # We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
@@ -19,22 +19,27 @@ RUN apt-get update && apt-get install gnupg wget -y && \
 RUN ls -alh /usr/bin/google-chrome-stable && \
     /usr/bin/google-chrome-stable --version
 
-# Copy package.json and package-lock.json for the main app
+# Copy package.json and package-lock.json of the main project
 COPY package*.json ./
 
-# Install main app dependencies
+# Install main dependencies
 RUN npm install
 
-# Copy the rest of the app source code
+# Copy the entire project into the working directory
 COPY . .
 
-# Install whatsapp-web.js dependencies
-RUN cd src/whatsapp-web.js && npm install
+# Navigate to the whatsapp-web.js directory and install dependencies
+WORKDIR /app/whatsapp-web.js
+COPY whatsapp-web.js/package*.json ./
+RUN npm install
+
+# Navigate back to the main project directory
+WORKDIR /app
 
 RUN npm run build
 
-# Expose the port on which your app will run
+# Expose the port your application runs on (adjust according to your app)
 EXPOSE 3000
 
-# Start the application
+# Define the command to start your application (adjust this as needed)
 CMD ["npm", "start"]

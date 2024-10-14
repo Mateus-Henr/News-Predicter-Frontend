@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "postbuild": "cp -r src/whatsapp-web.js dist/whatsapp-web.js",
+    "postbuild": "cp -r whatsapp-web.js dist/whatsapp-web.js",
     "start": "node dist/index.js",
     "test": "echo \"No test specified\" && exit 0"
   },
