@@ -29,7 +29,7 @@ RUN npm install
 COPY . .
 
 # Install whatsapp-web.js dependencies
-RUN cd /usr/src/app/src/whatsapp-web.js && npm install
+RUN cd src/whatsapp-web.js && npm install
 
 RUN npm run build
 
