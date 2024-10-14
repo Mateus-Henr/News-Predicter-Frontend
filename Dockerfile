@@ -34,6 +34,8 @@ RUN cd /usr/src/app/src/whatsapp-web.js && npm install
 # Copy the rest of the app source code
 COPY . .
 
+RUN npm run build
+
 # Expose the port on which your app will run
 EXPOSE 3000
 
