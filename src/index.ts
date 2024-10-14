@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express";
 import bodyParser from "body-parser";
-import {Chat, Client, Message} from "whatsapp-web.js";
+import {Client, Message} from "./whatsapp-web.js";
 import axios from "axios";
 import qrcode from "qrcode-terminal";
 
@@ -10,7 +10,6 @@ app.use(bodyParser.json());
 const client = new Client({
     puppeteer: {
         headless: true,
-        browser: "firefox",
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -18,15 +17,12 @@ const client = new Client({
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
         ],
-        executablePath: "/usr/bin/firefox",
+        executablePath: "/usr/bin/google-chrome-stable",
         timeout: 100000
     }
 });
 
-declare global
-{
-    var GROUP_ID: string | undefined;
-}
+const GROUP_ID = "120363304492390966@g.us";
 
 client.on("qr", (qr: string) =>
 {
@@ -36,26 +32,6 @@ client.on("qr", (qr: string) =>
 client.on("ready", async () =>
 {
     console.log("WhatsApp client is ready!");
-
-    try
-    {
-        const chats = await client.getChats();
-        const group = chats.find((chat: Chat) => chat.isGroup && chat.name === "Stock News Analyses");
-
-        if (group)
-        {
-            console.log(`Group ID: ${group.id._serialized}`);
-            global.GROUP_ID = group.id._serialized;
-        }
-        else
-        {
-            console.error("Group not found");
-        }
-    }
-    catch (error)
-    {
-        console.error("Error while getting chats:", error);
-    }
 });
 
 client.on("message_create", async (message: Message) =>
@@ -63,7 +39,7 @@ client.on("message_create", async (message: Message) =>
     try
     {
         const chat = await message.getChat();
-        if (chat.isGroup && chat.name !== "Stock News Analyses")
+        if (chat.isGroup && chat.id._serialized !== GROUP_ID)
         {
             return;
         }
@@ -114,14 +90,9 @@ app.post("/send-message", async (req: Request, res: Response): Promise<any> =>
         return res.status(400).json({error: "Message is required"});
     }
 
-    if (!global.GROUP_ID)
-    {
-        return res.status(500).json({error: "Group ID not found"});
-    }
-
     try
     {
-        await client.sendMessage(global.GROUP_ID, message);
+        await client.sendMessage(GROUP_ID, message);
         res.status(200).json({status: "Message sent to group"});
     }
     catch (error)
@@ -131,7 +102,7 @@ app.post("/send-message", async (req: Request, res: Response): Promise<any> =>
     }
 });
 
-client.initialize().then(r => console.log("Initialized"));
+client.initialize();
 
 app.listen(3000, () =>
 {

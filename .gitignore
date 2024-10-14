@@ -11,3 +11,6 @@ yarn-error.log*
 .vscode/*
 .env
 .idea
+.wwebjs_cache
+.github
+docs
