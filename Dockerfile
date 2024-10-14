@@ -20,15 +20,28 @@ RUN apt-get update && apt-get install gnupg wget -y && \
 RUN ls -alh /usr/bin/google-chrome-stable && \
     /usr/bin/google-chrome-stable --version
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json for the main app
 COPY package*.json ./
 
-# Install app dependencies including Puppeteer
+# Install main app dependencies
 RUN npm install
 
-# Bundle app source code
+# Copy the entire `src/whatsapp-web.js` directory, including JS code
+COPY src/whatsapp-web.js /usr/src/app/src/whatsapp-web.js
+
+# Navigate to whatsapp-web.js directory
+WORKDIR /usr/src/app/src/whatsapp-web.js
+
+# Install whatsapp-web.js dependencies
+RUN npm install
+
+# Return to the main app directory
+WORKDIR /usr/src/app
+
+# Copy the rest of the app source code
 COPY . .
 
+# Build the app (if applicable, adjust if no build step is needed)
 RUN npm run build
 
 # Expose the port on which your app will run
