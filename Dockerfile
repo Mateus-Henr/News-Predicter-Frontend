@@ -25,14 +25,11 @@ COPY package*.json ./
 # Install main app dependencies
 RUN npm install
 
-# Copy the entire `src/whatsapp-web.js` directory
-COPY src/whatsapp-web.js /usr/src/app/src/whatsapp-web.js
+# Copy the rest of the app source code
+COPY . .
 
 # Install whatsapp-web.js dependencies
 RUN cd /usr/src/app/src/whatsapp-web.js && npm install
-
-# Copy the rest of the app source code
-COPY . .
 
 RUN npm run build
 

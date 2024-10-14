@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/.wwebjs_cache" />
+      <excludeFolder url="file://$MODULE_DIR$/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/whatsapp-web.js/.github" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/whatsapp-web.js/docs" />
       <excludeFolder url="file://$MODULE_DIR$/src/.wwebjs_cache" />
       <excludeFolder url="file://$MODULE_DIR$/src/whatsapp-web.js/.github" />
       <excludeFolder url="file://$MODULE_DIR$/src/whatsapp-web.js/docs" />
