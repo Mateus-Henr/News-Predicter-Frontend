@@ -18,7 +18,7 @@ if (isMainThread)
     const client = new Client({
         puppeteer: {
             headless: true,
-            timeout: 0,
+            args: ["--no-sandbox"]
         },
     });
 
