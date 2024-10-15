@@ -1,7 +1,8 @@
+import {Client, Message} from "whatsapp-web.js";
+
 require("dotenv").config();
 import express, {Request, Response} from "express";
 import bodyParser from "body-parser";
-import {Client, Message} from "./whatsapp-web.js";
 import axios from "axios";
 import qrcode from "qrcode-terminal";
 
@@ -17,9 +18,7 @@ const client = new Client({
             "--disable-dev-shm-usage",
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
-        ],
-        executablePath: "/usr/bin/chromium",
-        timeout: 100000
+        ]
     },
     webVersionCache: { type: 'remote', remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html', }
 });
