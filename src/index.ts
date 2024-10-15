@@ -1,3 +1,4 @@
+require("dotenv").config();
 import express, {Request, Response} from "express";
 import bodyParser from "body-parser";
 import {Client, Message} from "./whatsapp-web.js";
@@ -17,7 +18,6 @@ const client = new Client({
             "--disable-accelerated-2d-canvas",
             "--disable-gpu"
         ],
-        executablePath: "/usr/bin/google-chrome-stable",
         timeout: 100000
     }
 });
@@ -52,32 +52,165 @@ client.on("message_create", async (message: Message) =>
             const ticker = messageString[0];
             const url = messageString[1];
 
+            // Check if ticker and URL are valid
             if (!ticker || !url || !url.startsWith("http"))
             {
-                await message.reply("Invalid data.");
-                return;
+                throw new Error("Error: Invalid URL or Ticker.");
             }
 
             try
             {
-                const response = await axios.post(`${process.env.BASE_URL}/news`,
-                    {
-                        ticker: ticker,
-                        url: url
-                    });
-                await message.reply(response.data["message"]);
+                const response = await axios.post(`${process.env.BASE_URL}/news`, {
+                    ticker: ticker,
+                    url: url
+                });
+
+                // Check response status and handle accordingly
+                if (response.status === 200)
+                {
+                    await message.reply(response.data["message"]);
+                }
+                else if (response.status === 400)
+                {
+                    throw new Error(response.data.error || "Unable to process news request.");
+                }
+                else
+                {
+                    throw new Error("Unexpected response from news API.");
+                }
             }
-            catch (error)
+            catch (apiError: any)
             {
-                console.error("Error sending news request:", error);
-                await message.reply("Processing error.");
-                return;
+                throw new Error(`API Error: ${apiError.message || apiError}`);
+            }
+        }
+        else if (content.startsWith("!add"))
+        {
+            const ticker = content.replace("!add ", "").trim();
+
+            if (!ticker)
+            {
+                throw new Error("Error: Invalid Ticker.");
+            }
+
+            try
+            {
+                const response = await axios.post(`${process.env.BASE_URL}/add-ticker`, {
+                    ticker: ticker
+                });
+
+                if (response.status === 200)
+                {
+                    await message.reply(`Ticker ${ticker} has been added successfully.`);
+                }
+                else if (response.status === 400)
+                {
+                    throw new Error(response.data.error || "Unable to add ticker.");
+                }
+                else
+                {
+                    throw new Error("Unexpected response from add-ticker API.");
+                }
+            }
+            catch (apiError: any)
+            {
+                throw new Error(`API Error: ${apiError.message || apiError}`);
+            }
+        }
+        else if (content.startsWith("!remove"))
+        {
+            const ticker = content.replace("!remove ", "").trim();
+
+            if (!ticker)
+            {
+                throw new Error("Error: Invalid Ticker.");
+            }
+
+            try
+            {
+                const response = await axios.post(`${process.env.BASE_URL}/remove-ticker`, {
+                    ticker: ticker
+                });
+
+                if (response.status === 200)
+                {
+                    await message.reply(`Ticker ${ticker} has been removed successfully.`);
+                }
+                else if (response.status === 400)
+                {
+                    throw new Error(response.data.error || "Unable to remove ticker.");
+                }
+                else
+                {
+                    throw new Error("Unexpected response from remove-ticker API.");
+                }
+            }
+            catch (apiError: any)
+            {
+                throw new Error(`API Error: ${apiError.message || apiError}`);
+            }
+        }
+        else if (content.startsWith("!clear-news"))
+        {
+            try
+            {
+                const response = await axios.get(`${process.env.BASE_URL}/clear-news`);
+
+                if (response.status === 200)
+                {
+                    await message.reply("News data has been cleared successfully.");
+                }
+                else if (response.status === 400)
+                {
+                    throw new Error(response.data.error || "Unable to clear news data.");
+                }
+                else
+                {
+                    throw new Error("Unexpected response from clear-news API.");
+                }
+            }
+            catch (apiError: any)
+            {
+                throw new Error(`API Error: ${apiError.message || apiError}`);
+            }
+        }
+        else if (content.startsWith("!get"))
+        {
+            try
+            {
+                const response = await axios.get(`${process.env.BASE_URL}/get-tickers`);
+
+                if (response.status === 200)
+                {
+                    const tickers = response.data;
+
+                    if (tickers.length > 0)
+                    {
+                        await message.reply(`Tickers in watchlist: ${tickers.join(", ")}`);
+                    }
+                    else
+                    {
+                        await message.reply("No tickers found in the watchlist.");
+                    }
+                }
+                else if (response.status === 400)
+                {
+                    throw new Error(response.data.error || "Unable to retrieve tickers.");
+                }
+                else
+                {
+                    throw new Error("Unexpected response from get-tickers API.");
+                }
+            }
+            catch (apiError: any)
+            {
+                throw new Error(`API Error: ${apiError.message || apiError}`);
             }
         }
     }
-    catch (error)
+    catch (error: any)
     {
-        console.error("Error processing message:", error);
+        await message.reply(error.toString());
     }
 });
 
