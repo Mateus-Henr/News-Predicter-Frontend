@@ -20,7 +20,8 @@ const client = new Client({
         ],
         executablePath: "/usr/bin/chromium",
         timeout: 100000
-    }
+    },
+    webVersionCache: { type: 'remote', remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html', }
 });
 
 const GROUP_ID = "120363304492390966@g.us";
