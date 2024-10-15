@@ -9,7 +9,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Install Google Chrome Stable and fonts
 RUN apt-get update && apt-get install -y \
-    chromium-browser \
+    chromium \
     gconf-service \
     libasound2 \
     libatk1.0-0 \
