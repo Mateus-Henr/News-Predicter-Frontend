@@ -18,7 +18,7 @@ const client = new Client({
             // "--disable-accelerated-2d-canvas",
             // "--disable-gpu"
         ],
-        timeout: 100000
+        timeout: 0
     }
 });
 
