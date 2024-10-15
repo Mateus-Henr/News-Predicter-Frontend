@@ -15,8 +15,8 @@ const client = new Client({
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--disable-gpu"
+            // "--disable-accelerated-2d-canvas",
+            // "--disable-gpu"
         ],
         timeout: 100000
     }
