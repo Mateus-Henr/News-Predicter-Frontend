@@ -18,7 +18,7 @@ const client = new Client({
         //     "--disable-accelerated-2d-canvas",
         //     "--disable-gpu"
         // ],
-        executablePath: "/usr/bin/chromium-browser",
+        executablePath: "/usr/bin/chromium",
         timeout: 100000
     }
 });
