@@ -3,7 +3,7 @@ import express, {Request, Response} from "express";
 import bodyParser from "body-parser";
 import {Client, Message} from "./whatsapp-web.js";
 import axios from "axios";
-import qrcode from "qrcode-terminal";
+import QRCode from "qrcode";
 
 const app = express();
 app.use(bodyParser.json());
@@ -26,7 +26,10 @@ const GROUP_ID = "120363304492390966@g.us";
 
 client.on("qr", (qr: string) =>
 {
-    qrcode.generate(qr, {small: true});
+    QRCode.toDataURL(qr, function (err, url)
+    {
+        console.log(url);
+    });
 });
 
 client.on("ready", async () =>
