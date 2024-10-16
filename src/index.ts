@@ -1,46 +1,50 @@
 require("dotenv").config();
-import {isMainThread, parentPort, Worker} from "worker_threads";
 import express, {Request, Response} from "express";
 import bodyParser from "body-parser";
 import {Client, Message} from "./whatsapp-web.js";
 import axios from "axios";
-import QRCode from "qrcode";
+import qrcode from "qrcode-terminal";
 
-// Group ID constant
+const app = express();
+app.use(bodyParser.json());
+
+const client = new Client({
+    puppeteer: {
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--disable-gpu"
+        ],
+        timeout: 0,
+        executablePath: "/usr/bin/google-chrome-stable"
+    }
+});
+
 const GROUP_ID = "120363304492390966@g.us";
 
-// Check if we're in the main thread
-if (isMainThread)
+client.on("qr", (qr: string) =>
 {
-    // Main thread (WhatsApp Client logic)
+    qrcode.generate(qr, {small: true});
+});
 
-    // Initialize WhatsApp Client
-    const client = new Client({
-        puppeteer: {
-            headless: true,
-            args: ["--no-sandbox"]
-        },
-    });
+client.on("ready", async () =>
+{
+    console.log("WhatsApp client is ready!");
+});
 
-    // WhatsApp QR Code Handler
-    client.on("qr", (qr: string) =>
+client.on("message_create", async (message: Message) =>
+{
+    try
     {
-        QRCode.toDataURL(qr, function (err, url)
+        const chat = await message.getChat();
+        if (chat.isGroup && chat.id._serialized !== GROUP_ID)
         {
-            console.log(url);
-        });
-    });
+            return;
+        }
 
-    // WhatsApp Ready Event
-    client.on("ready", async () =>
-    {
-        console.log("WhatsApp client is ready!");
-    });
-
-    // WhatsApp Message Handling
-    client.on("message_create", async (message: Message) =>
-    {
-        // Your message processing logic (as before)
         const content = message.body;
 
         if (content.startsWith("!news"))
@@ -204,72 +208,37 @@ if (isMainThread)
                 throw new Error(`API Error: ${apiError.message || apiError}`);
             }
         }
-    });
-
-    // Initialize WhatsApp Client
-    client.initialize().then(() => console.log("WhatsApp Client Initialized"));
-
-    // Create a worker thread for the Express app
-    const worker = new Worker(__filename); // Re-execute this file in a worker thread
-    worker.on("message", async (msg: any) =>
+    }
+    catch (error: any)
     {
-        if (msg.type === "sendMessage")
-        {
-            const {message, GROUP_ID} = msg.data;
-            try
-            {
-                await client.sendMessage(GROUP_ID, message);
-                console.log("Message sent from Express app to WhatsApp group.");
-            }
-            catch (error)
-            {
-                console.error("Failed to send message:", error);
-            }
-        }
-    });
+        await message.reply(error.toString());
+    }
+});
 
-    worker.on("error", (error) =>
-    {
-        console.error("Worker thread error:", error);
-    });
-
-    worker.on("exit", (code) =>
-    {
-        if (code !== 0)
-        {
-            console.error(`Worker thread stopped with exit code ${code}`);
-        }
-    });
-
-}
-else
+app.post("/send-message", async (req: Request, res: Response): Promise<any> =>
 {
-    // Worker thread (Express App logic)
+    const {message}: { message: string } = req.body;
 
-    const app = express();
-    app.use(bodyParser.json());
-
-    app.post("/send-message", (req: Request, res: Response): any =>
+    if (!message)
     {
-        const {message} = req.body;
+        return res.status(400).json({error: "Message is required"});
+    }
 
-        if (!message)
-        {
-            return res.status(400).json({error: "Message is required"});
-        }
-
-        // Send the message to the main thread (WhatsApp client)
-        // @ts-ignore
-        parentPort.postMessage({
-            type: "sendMessage",
-            data: {message, GROUP_ID},
-        });
-
-        res.status(200).json({status: "Message sent to WhatsApp group"});
-    });
-
-    app.listen(3000, () =>
+    try
     {
-        console.log("Express server running on port 3000");
-    });
-}
+        await client.sendMessage(GROUP_ID, message);
+        res.status(200).json({status: "Message sent to group"});
+    }
+    catch (error)
+    {
+        console.error("Failed to send message:", error);
+        res.status(500).json({error: "Failed to send message"});
+    }
+});
+
+client.initialize();
+
+app.listen(3000, () =>
+{
+    console.log("Server running on port 3000");
+});
